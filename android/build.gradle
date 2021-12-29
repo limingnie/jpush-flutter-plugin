@@ -5,7 +5,7 @@ buildscript {
     repositories {
         mavenCentral()
         google()
-        jcenter()
+       // jcenter()
     }
 
     dependencies {
@@ -17,14 +17,14 @@ rootProject.allprojects {
     repositories {
         mavenCentral()
         google()
-        jcenter()
+       // jcenter()
     }
 }
 
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 17
@@ -35,6 +35,8 @@ android {
 }
 
 dependencies {
-    implementation 'cn.jiguang.sdk:jpush:4.0.9'
-    implementation 'cn.jiguang.sdk:jcore:2.8.2'
+    implementation 'cn.jiguang.sdk:jpush-google:4.2.2'
+    implementation 'cn.jiguang.sdk:jcore-google:2.9.2'
+//    implementation 'com.android.support:appcompat-v7:28.+'
+   // compileOnly files('libs/flutter.jar')
 }
