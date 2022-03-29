@@ -376,8 +376,15 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
      */
     public static class JPushReceiver extends BroadcastReceiver {
 
-        private static final List<String> IGNORED_EXTRAS_KEYS = Arrays.asList("cn.jpush.android.TITLE",
-                "cn.jpush.android.MESSAGE", "cn.jpush.android.APPKEY", "cn.jpush.android.NOTIFICATION_CONTENT_TITLE", "key_show_entity", "platform");
+        private static final List<String> IGNORED_EXTRAS_KEYS = Arrays.asList(
+                JPushInterface.EXTRA_TITLE,
+                JPushInterface.EXTRA_MESSAGE,
+                JPushInterface.EXTRA_APP_KEY,
+                JPushInterface.EXTRA_NOTIFICATION_TITLE,
+                "key_show_entity",
+                "platform",
+                JPushInterface.EXTRA_TYPE_PLATFORM
+        );
 
         public JPushReceiver() {
         }
