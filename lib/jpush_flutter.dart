@@ -6,11 +6,11 @@ import 'package:platform/platform.dart';
 typedef Future<dynamic> EventHandler(Map<String, dynamic> event);
 
 class JPush {
-  static String _logTag = "| JPUSH | Flutter | ";
+  static String _logTag = "| JPUSH | Flutter |";
 
   static bool _debugMode = false;
   static void log(String msg) {
-    if (_debugMode) print(_logTag + msg);
+    if (_debugMode) print('$_logTag $msg');
   }
 
   factory JPush() => _instance;
