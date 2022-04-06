@@ -33,7 +33,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
 
 
     private static String TAG = "| JPUSH | Flutter | Android | ";
-    private  static boolean debugMode = true;
+    private  static boolean debugMode = false;
 
     private static void logd(String msg) {
         if (debugMode) Log.d(TAG, msg);

@@ -8,7 +8,7 @@ typedef Future<dynamic> EventHandler(Map<String, dynamic> event);
 class JPush {
   static String _logTag = "| JPUSH | Flutter | ";
 
-  static bool _debugMode = true;
+  static bool _debugMode = false;
   static void log(String msg) {
     if (_debugMode) print(_logTag + msg);
   }
@@ -31,6 +31,9 @@ class JPush {
   EventHandler? _onReceiveMessage;
   EventHandler? _onReceiveNotificationAuthorization;
 
+  /// TODO: 2022/4/6 nlm iOS的实现也需要处理这两个参数
+  /// - [debug], 是否打印日志
+  /// - [logType], native和flutter中, 打印日志的TAG
   void setup({
     String appKey = '',
     bool production = false,
