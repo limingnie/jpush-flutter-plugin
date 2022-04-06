@@ -33,6 +33,15 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
 
 
     private static String TAG = "| JPUSH | Flutter | Android | ";
+    private  static boolean debugMode = true;
+
+    private static void logd(String msg) {
+        if (debugMode) Log.d(TAG, msg);
+    }
+
+    private static void logi(String msg) {
+        if (debugMode) Log.i(TAG, msg);
+    }
 
     public static JPushPlugin instance;
 
@@ -72,7 +81,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
-        Log.i(TAG, call.method);
+        logi(call.method);
         if (call.method.equals("getPlatformVersion")) {
             result.success("Android " + android.os.Build.VERSION.RELEASE);
         } else if (call.method.equals("setup")) {
@@ -133,7 +142,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
 
     // 主线程再返回数据
     public void runMainThread(final Map<String, Object> map, final Result result, final String method) {
-        Log.d(TAG, "runMainThread:" + "map = " + map + ",method =" + method);
+        logd("runMainThread:" + "map = " + map + ",method =" + method);
         android.os.Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
@@ -148,10 +157,18 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void setup(MethodCall call, Result result) {
-        Log.d(TAG, "setup :" + call.arguments);
+        logd("setup :" + call.arguments);
 
         HashMap<String, Object> map = call.arguments();
-        boolean debug = (boolean) map.get("debug");
+        Boolean debug = (Boolean) map.get("debug");
+        String logTag = (String) map.get("logTag");
+
+        if (logTag != null) {
+            TAG = logTag;
+        }
+        if(debug != null){
+            JPushPlugin.debugMode = debug;
+        }
         JPushInterface.setDebugMode(debug);
 
         JPushInterface.init(context);            // 初始化 JPush
@@ -166,7 +183,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void scheduleCache() {
-        Log.d(TAG, "scheduleCache:");
+        logd("scheduleCache:");
 
         List<Object> tempList = new ArrayList<Object>();
 
@@ -181,7 +198,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
         }
 
         if (context == null) {
-            Log.d(TAG, "scheduleCache，register context is nil.");
+            logd("scheduleCache，register context is nil.");
             return;
         }
 
@@ -192,7 +209,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
             tempList.clear();
             List<Result> resultList = JPushPlugin.instance.getRidCache;
             for (Result res : resultList) {
-                Log.d(TAG, "scheduleCache rid = " + rid);
+                logd("scheduleCache rid = " + rid);
                 res.success(rid);
                 tempList.add(res);
             }
@@ -201,7 +218,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void setTags(MethodCall call, Result result) {
-        Log.d(TAG, "setTags：");
+        logd("setTags：");
 
         List<String> tagList = call.arguments();
         Set<String> tags = new HashSet<>(tagList);
@@ -211,7 +228,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void cleanTags(MethodCall call, Result result) {
-        Log.d(TAG, "cleanTags:");
+        logd("cleanTags:");
 
         sequence += 1;
         callbackMap.put(sequence, result);
@@ -219,7 +236,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void addTags(MethodCall call, Result result) {
-        Log.d(TAG, "addTags: " + call.arguments);
+        logd("addTags: " + call.arguments);
 
         List<String> tagList = call.arguments();
         Set<String> tags = new HashSet<>(tagList);
@@ -229,7 +246,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void deleteTags(MethodCall call, Result result) {
-        Log.d(TAG, "deleteTags： " + call.arguments);
+        logd("deleteTags： " + call.arguments);
 
         List<String> tagList = call.arguments();
         Set<String> tags = new HashSet<>(tagList);
@@ -239,7 +256,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void getAllTags(MethodCall call, Result result) {
-        Log.d(TAG, "getAllTags： ");
+        logd("getAllTags： ");
 
         sequence += 1;
         callbackMap.put(sequence, result);
@@ -247,7 +264,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void setAlias(MethodCall call, Result result) {
-        Log.d(TAG, "setAlias: " + call.arguments);
+        logd("setAlias: " + call.arguments);
 
         String alias = call.arguments();
         sequence += 1;
@@ -256,7 +273,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void deleteAlias(MethodCall call, Result result) {
-        Log.d(TAG, "deleteAlias:");
+        logd("deleteAlias:");
 
         String alias = call.arguments();
         sequence += 1;
@@ -265,25 +282,25 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void stopPush(MethodCall call, Result result) {
-        Log.d(TAG, "stopPush:");
+        logd("stopPush:");
 
         JPushInterface.stopPush(context);
     }
 
     public void resumePush(MethodCall call, Result result) {
-        Log.d(TAG, "resumePush:");
+        logd("resumePush:");
 
         JPushInterface.resumePush(context);
     }
 
     public void clearAllNotifications(MethodCall call, Result result) {
-        Log.d(TAG, "clearAllNotifications: ");
+        logd("clearAllNotifications: ");
 
         JPushInterface.clearAllNotifications(context);
     }
 
     public void clearNotification(MethodCall call, Result result) {
-        Log.d(TAG, "clearNotification: ");
+        logd("clearNotification: ");
         Object id = call.arguments;
         if (id != null) {
             JPushInterface.clearNotificationById(context, (int) id);
@@ -291,16 +308,16 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void getLaunchAppNotification(MethodCall call, Result result) {
-        Log.d(TAG, "");
+        logd("");
 
 
     }
 
     public void getRegistrationID(MethodCall call, Result result) {
-        Log.d(TAG, "getRegistrationID: ");
+        logd("getRegistrationID: ");
 
         if (context == null) {
-            Log.d(TAG, "register context is nil.");
+            logd("register context is nil.");
             return;
         }
 
@@ -314,7 +331,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
 
 
     public void sendLocalNotification(MethodCall call, Result result) {
-        Log.d(TAG, "sendLocalNotification: " + call.arguments);
+        logd("sendLocalNotification: " + call.arguments);
 
         try {
             HashMap<String, Object> map = call.arguments();
@@ -341,7 +358,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public void setBadge(MethodCall call, Result result) {
-        Log.d(TAG, "setBadge: " + call.arguments);
+        logd("setBadge: " + call.arguments);
 
         HashMap<String, Object> map = call.arguments();
         Object numObject = map.get("badge");
@@ -354,7 +371,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
 
     /// 检查当前应用的通知开关是否开启
     private void isNotificationEnabled(MethodCall call, Result result) {
-        Log.d(TAG, "isNotificationEnabled: ");
+        logd("isNotificationEnabled: ");
         int isEnabled = JPushInterface.isNotificationEnabled(context);
         //1表示开启，0表示关闭，-1表示检测失败
         HashMap<String, Object> map = new HashMap();
@@ -364,7 +381,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     private void openSettingsForNotification(MethodCall call, Result result) {
-        Log.d(TAG, "openSettingsForNotification: ");
+        logd("openSettingsForNotification: ");
 
         JPushInterface.goToAppNotificationSettings(context);
 
@@ -396,7 +413,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
 
             if (action.equals(JPushInterface.ACTION_REGISTRATION_ID)) {
                 String rId = intent.getStringExtra(JPushInterface.EXTRA_REGISTRATION_ID);
-                Log.d("JPushPlugin", "on get registration");
+                logd("JPushPlugin: on get registration");
                 JPushPlugin.transmitReceiveRegistrationId(rId);
 
             } else if (action.equals(JPushInterface.ACTION_MESSAGE_RECEIVED)) {
@@ -409,7 +426,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
         }
 
         private void handlingMessageReceive(Intent intent) {
-            Log.d(TAG, "handlingMessageReceive " + intent.getAction());
+            logd("handlingMessageReceive " + intent.getAction());
 
             String msg = intent.getStringExtra(JPushInterface.EXTRA_MESSAGE);
             Map<String, Object> extras = getNotificationExtras(intent);
@@ -417,7 +434,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
         }
 
         private void handlingNotificationOpen(Context context, Intent intent) {
-            Log.d(TAG, "handlingNotificationOpen " + intent.getAction());
+            logd("handlingNotificationOpen " + intent.getAction());
 
             String title = intent.getStringExtra(JPushInterface.EXTRA_NOTIFICATION_TITLE);
             String alert = intent.getStringExtra(JPushInterface.EXTRA_ALERT);
@@ -433,7 +450,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
         }
 
         private void handlingNotificationReceive(Context context, Intent intent) {
-            Log.d(TAG, "handlingNotificationReceive " + intent.getAction());
+            logd("handlingNotificationReceive " + intent.getAction());
 
             String title = intent.getStringExtra(JPushInterface.EXTRA_NOTIFICATION_TITLE);
             String alert = intent.getStringExtra(JPushInterface.EXTRA_ALERT);
@@ -442,7 +459,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
         }
 
         private Map<String, Object> getNotificationExtras(Intent intent) {
-            Log.d(TAG, "");
+            logd("");
 
             Map<String, Object> extrasMap = new HashMap<String, Object>();
             for (String key : intent.getExtras().keySet()) {
@@ -460,7 +477,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
 
 
     static void transmitMessageReceive(String message, Map<String, Object> extras) {
-        Log.d(TAG, "transmitMessageReceive " + "message=" + message + "extras=" + extras);
+        logd("transmitMessageReceive " + "message=" + message + "extras=" + extras);
 
         if (instance == null) {
             return;
@@ -473,7 +490,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     static void transmitNotificationOpen(String title, String alert, Map<String, Object> extras) {
-        Log.d(TAG, "transmitNotificationOpen " + "title=" + title + "alert=" + alert + "extras=" + extras);
+        logd("transmitNotificationOpen " + "title=" + title + "alert=" + alert + "extras=" + extras);
 
         Map<String, Object> notification = new HashMap<>();
         notification.put("title", title);
@@ -482,12 +499,12 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
         JPushPlugin.openNotificationCache.add(notification);
 
         if (instance == null) {
-            Log.d("JPushPlugin", "the instance is null");
+            logd("JPushPlugin: the instance is null");
             return;
         }
 
         if (instance.dartIsReady) {
-            Log.d("JPushPlugin", "instance.dartIsReady is true");
+            logd("JPushPlugin: instance.dartIsReady is true");
             JPushPlugin.instance.channel.invokeMethod("onOpenNotification", notification);
             JPushPlugin.openNotificationCache.remove(notification);
         }
@@ -495,7 +512,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     static void transmitNotificationReceive(String title, String alert, Map<String, Object> extras) {
-        Log.d(TAG, "transmitNotificationReceive " + "title=" + title + "alert=" + alert + "extras=" + extras);
+        logd("transmitNotificationReceive " + "title=" + title + "alert=" + alert + "extras=" + extras);
 
         if (instance == null) {
             return;
@@ -509,7 +526,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     static void transmitReceiveRegistrationId(String rId) {
-        Log.d(TAG, "transmitReceiveRegistrationId： " + rId);
+        logd("transmitReceiveRegistrationId： " + rId);
 
         if (instance == null) {
             return;

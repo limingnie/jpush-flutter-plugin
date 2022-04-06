@@ -6,11 +6,11 @@ import 'package:platform/platform.dart';
 typedef Future<dynamic> EventHandler(Map<String, dynamic> event);
 
 class JPush {
-  static String _flutter_log = "| JPUSH | Flutter | ";
+  static String _logTag = "| JPUSH | Flutter | ";
 
-  static bool _debug = true;
+  static bool _debugMode = true;
   static void log(String msg) {
-    if (_debug) print(_flutter_log + msg);
+    if (_debugMode) print(_logTag + msg);
   }
 
   factory JPush() => _instance;
@@ -36,11 +36,11 @@ class JPush {
     bool production = false,
     String channel = '',
     bool debug = false,
-    String? flutterLogTag,
+    String? logTag,
   }) {
-    _debug = debug;
-    if (flutterLogTag != null) {
-      _flutter_log = flutterLogTag;
+    _debugMode = debug;
+    if (logTag != null) {
+      _logTag = logTag;
     }
     log("setup:");
 
@@ -48,7 +48,8 @@ class JPush {
       'appKey': appKey,
       'channel': channel,
       'production': production,
-      'debug': debug
+      'debug': debug,
+      'logTag': logTag
     });
   }
 
