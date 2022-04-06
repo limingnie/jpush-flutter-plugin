@@ -6,7 +6,12 @@ import 'package:platform/platform.dart';
 typedef Future<dynamic> EventHandler(Map<String, dynamic> event);
 
 class JPush {
-  static const String flutter_log = "| JPUSH | Flutter | ";
+  static String _flutter_log = "| JPUSH | Flutter | ";
+
+  static bool _debug = true;
+  static void log(String msg) {
+    if (_debug) print(_flutter_log + msg);
+  }
 
   factory JPush() => _instance;
 
@@ -31,8 +36,13 @@ class JPush {
     bool production = false,
     String channel = '',
     bool debug = false,
+    String? flutterLogTag,
   }) {
-    print(flutter_log + "setup:");
+    _debug = debug;
+    if (flutterLogTag != null) {
+      _flutter_log = flutterLogTag;
+    }
+    log("setup:");
 
     _channel.invokeMethod('setup', {
       'appKey': appKey,
@@ -55,7 +65,7 @@ class JPush {
     EventHandler? onReceiveMessage,
     EventHandler? onReceiveNotificationAuthorization,
   }) {
-    print(flutter_log + "addEventHandler:");
+    log("addEventHandler:");
 
     _onReceiveNotification = onReceiveNotification;
     _onOpenNotification = onOpenNotification;
@@ -65,7 +75,7 @@ class JPush {
   }
 
   Future<dynamic> _handleMethod(MethodCall call) async {
-    print(flutter_log + "_handleMethod:");
+    log("_handleMethod:");
 
     switch (call.method) {
       case "onReceiveNotification":
@@ -88,7 +98,7 @@ class JPush {
   ///
   void applyPushAuthority(
       [NotificationSettingsIOS iosSettings = const NotificationSettingsIOS()]) {
-    print(flutter_log + "applyPushAuthority:");
+    log("applyPushAuthority:");
 
     if (!_platform.isIOS) {
       return;
@@ -105,7 +115,7 @@ class JPush {
   /// @param {Function} fail = ({"errorCode":int}) => {  }
   ///
   Future<Map<dynamic, dynamic>> setTags(List<String> tags) async {
-    print(flutter_log + "setTags:");
+    log("setTags:");
 
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('setTags', tags);
@@ -119,7 +129,7 @@ class JPush {
   /// @param {Function} fail = ({"errorCode":int}) => {  }
   ///
   Future<Map<dynamic, dynamic>> cleanTags() async {
-    print(flutter_log + "cleanTags:");
+    log("cleanTags:");
 
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('cleanTags');
@@ -135,7 +145,7 @@ class JPush {
   ///
 
   Future<Map<dynamic, dynamic>> addTags(List<String> tags) async {
-    print(flutter_log + "addTags:");
+    log("addTags:");
 
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('addTags', tags);
@@ -150,7 +160,7 @@ class JPush {
   /// @param {Function} fail = ({"errorCode":int}) => {  }
   ///
   Future<Map<dynamic, dynamic>> deleteTags(List<String> tags) async {
-    print(flutter_log + "deleteTags:");
+    log("deleteTags:");
 
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('deleteTags', tags);
@@ -164,7 +174,7 @@ class JPush {
   /// @param {Function} fail = ({"errorCode":int}) => {  }
   ///
   Future<Map<dynamic, dynamic>> getAllTags() async {
-    print(flutter_log + "getAllTags:");
+    log("getAllTags:");
 
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('getAllTags');
@@ -180,7 +190,7 @@ class JPush {
   /// @param {Function} fail = ({"errorCode":int}) => {  }
   ///
   Future<Map<dynamic, dynamic>> setAlias(String alias) async {
-    print(flutter_log + "setAlias:");
+    log("setAlias:");
 
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('setAlias', alias);
@@ -194,7 +204,7 @@ class JPush {
   /// @param {Function} fail = ({"errorCode":int}) => {  }
   ///
   Future<Map<dynamic, dynamic>> deleteAlias() async {
-    print(flutter_log + "deleteAlias:");
+    log("deleteAlias:");
 
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('deleteAlias');
@@ -209,7 +219,7 @@ class JPush {
   /// 注意：如果是 Android 手机，目前仅支持华为手机
   ///
   Future setBadge(int badge) async {
-    print(flutter_log + "setBadge:");
+    log("setBadge:");
 
     await _channel.invokeMethod('setBadge', {"badge": badge});
   }
@@ -218,7 +228,7 @@ class JPush {
   /// 停止接收推送，调用该方法后应用将不再受到推送，如果想要重新收到推送可以调用 resumePush。
   ///
   Future stopPush() async {
-    print(flutter_log + "stopPush:");
+    log("stopPush:");
 
     await _channel.invokeMethod('stopPush');
   }
@@ -227,7 +237,7 @@ class JPush {
   /// 恢复推送功能。
   ///
   Future resumePush() async {
-    print(flutter_log + "resumePush:");
+    log("resumePush:");
 
     await _channel.invokeMethod('resumePush');
   }
@@ -236,7 +246,7 @@ class JPush {
   /// 清空通知栏上的所有通知。
   ///
   Future clearAllNotifications() async {
-    print(flutter_log + "clearAllNotifications:");
+    log("clearAllNotifications:");
 
     await _channel.invokeMethod('clearAllNotifications');
   }
@@ -246,7 +256,7 @@ class JPush {
   /// @param notificationId 通知 id，即：LocalNotification id
   ///
   void clearNotification({int notificationId = 0}) {
-    print(flutter_log + "clearNotification:");
+    log("clearNotification:");
     _channel.invokeListMethod("clearNotification", notificationId);
   }
 
@@ -258,7 +268,7 @@ class JPush {
   /// @param {Function} callback = (Object) => {}
   ///
   Future<Map<dynamic, dynamic>> getLaunchAppNotification() async {
-    print(flutter_log + "getLaunchAppNotification:");
+    log("getLaunchAppNotification:");
 
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('getLaunchAppNotification');
@@ -271,7 +281,7 @@ class JPush {
   /// @param {Function} callback = (String) => {}
   ///
   Future<String> getRegistrationID() async {
-    print(flutter_log + "getRegistrationID:");
+    log("getRegistrationID:");
 
     final String rid = await _channel.invokeMethod('getRegistrationID');
     return rid;
@@ -282,7 +292,7 @@ class JPush {
   /// @param {Notification} notification
   ///
   Future<String> sendLocalNotification(LocalNotification notification) async {
-    print(flutter_log + "sendLocalNotification:");
+    log("sendLocalNotification:");
 
     await _channel.invokeMethod('sendLocalNotification', notification.toMap());
 
