@@ -156,7 +156,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
                     if( null != channel){
                         channel.invokeMethod(method,map);
                     }else {
-                        Log.d(TAG,"channel is null do nothing");
+                        logd("channel is null do nothing");
                     }
                 } else {
                     result.success(map);
@@ -272,7 +272,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
         JPushInterface.getAllTags(context, sequence);
     }
     public void getAlias(MethodCall call, Result result) {
-        Log.d(TAG, "getAlias： ");
+        logd("getAlias： ");
 
         sequence += 1;
         callbackMap.put(sequence, result);
@@ -415,8 +415,7 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
                 JPushInterface.EXTRA_APP_KEY,
                 JPushInterface.EXTRA_NOTIFICATION_TITLE,
                 "key_show_entity",
-                "platform",
-                JPushInterface.EXTRA_TYPE_PLATFORM
+                "platform"
         );
 
         public JPushReceiver() {
@@ -475,8 +474,6 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
         }
 
         private Map<String, Object> getNotificationExtras(Intent intent) {
-            logd("");
-
             Map<String, Object> extrasMap = new HashMap<String, Object>();
             Bundle extras = intent.getExtras();
             for (String key : extras.keySet()) {
@@ -529,9 +526,9 @@ public class JPushPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     public static void onNotifyMessageUnShow( NotificationMessage notificationMessage) {
-        Log.e(TAG,"[onNotifyMessageUnShow] message:"+notificationMessage);
+        logd("[onNotifyMessageUnShow] message:"+notificationMessage);
         if (instance == null) {
-            Log.d(TAG, "the instance is null");
+            logd("the instance is null");
             return;
         }
         Map<String, Object> notification= new HashMap<>();

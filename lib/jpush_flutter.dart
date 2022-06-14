@@ -62,7 +62,7 @@ class JPush {
   void setUnShowAtTheForeground({
     bool unShow = false,
   }) {
-    print(flutter_log + "setUnShowAtTheForeground:");
+    log("setUnShowAtTheForeground:");
     _channel.invokeMethod('setUnShowAtTheForeground', {'UnShow': unShow});
   }
 
@@ -206,7 +206,7 @@ class JPush {
   /// @param {Function} fail = ({"errorCode":int}) => {  }
   ///
   Future<Map<dynamic, dynamic>> getAlias() async {
-    print(flutter_log + "getAlias:");
+    log("getAlias:");
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('getAlias');
     return result;

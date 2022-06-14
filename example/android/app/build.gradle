@@ -29,7 +29,7 @@ def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 31
     lintOptions {
         disable 'InvalidPackage'
     }
@@ -54,7 +54,7 @@ android {
             // 还可以添加
         }
 
-        manifestPlaceholders = [
+        manifestPlaceholders += [
                 JPUSH_PKGNAME : applicationId,
                 JPUSH_APPKEY : "31c7c1b2cf59c1d42895a782", //JPush 上注册的包名对应的 Appkey.
                 JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可.
