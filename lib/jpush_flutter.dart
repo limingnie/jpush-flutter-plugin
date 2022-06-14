@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:platform/platform.dart';
@@ -30,6 +31,7 @@ class JPush {
   EventHandler? _onOpenNotification;
   EventHandler? _onReceiveMessage;
   EventHandler? _onReceiveNotificationAuthorization;
+  EventHandler? _onNotifyMessageUnShow;
 
   /// TODO: 2022/4/6 nlm iOS的实现也需要处理这两个参数
   /// - [debug], 是否打印日志
@@ -56,6 +58,14 @@ class JPush {
     });
   }
 
+  //APP活跃在前台时是否展示通知
+  void setUnShowAtTheForeground({
+    bool unShow = false,
+  }) {
+    print(flutter_log + "setUnShowAtTheForeground:");
+    _channel.invokeMethod('setUnShowAtTheForeground', {'UnShow': unShow});
+  }
+
   void setWakeEnable({bool enable = false}) {
     _channel.invokeMethod('setWakeEnable', {'enable': enable});
   }
@@ -68,6 +78,7 @@ class JPush {
     EventHandler? onOpenNotification,
     EventHandler? onReceiveMessage,
     EventHandler? onReceiveNotificationAuthorization,
+    EventHandler? onNotifyMessageUnShow,
   }) {
     log("addEventHandler:");
 
@@ -75,6 +86,7 @@ class JPush {
     _onOpenNotification = onOpenNotification;
     _onReceiveMessage = onReceiveMessage;
     _onReceiveNotificationAuthorization = onReceiveNotificationAuthorization;
+    _onNotifyMessageUnShow = onNotifyMessageUnShow;
     _channel.setMethodCallHandler(_handleMethod);
   }
 
@@ -91,6 +103,8 @@ class JPush {
       case "onReceiveNotificationAuthorization":
         return _onReceiveNotificationAuthorization!(
             call.arguments.cast<String, dynamic>());
+      case "onNotifyMessageUnShow":
+        return _onNotifyMessageUnShow!(call.arguments.cast<String, dynamic>());
       default:
         throw new UnsupportedError("Unrecognized Event");
     }
@@ -182,6 +196,19 @@ class JPush {
 
     final Map<dynamic, dynamic> result =
         await _channel.invokeMethod('getAllTags');
+    return result;
+  }
+
+  ///
+  /// 获取所有当前绑定的 alias
+  ///
+  /// @param {Function} success = ({"tags":[String]}) => {  }
+  /// @param {Function} fail = ({"errorCode":int}) => {  }
+  ///
+  Future<Map<dynamic, dynamic>> getAlias() async {
+    print(flutter_log + "getAlias:");
+    final Map<dynamic, dynamic> result =
+        await _channel.invokeMethod('getAlias');
     return result;
   }
 

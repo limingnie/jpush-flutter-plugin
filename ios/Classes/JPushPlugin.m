@@ -9,6 +9,7 @@
 
 @interface NSError (FlutterError)
 @property(readonly, nonatomic) FlutterError *flutterError;
+
 @end
 
 @implementation NSError (FlutterError)
@@ -22,6 +23,8 @@
 
 #if defined(__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
 @interface JPushPlugin ()<JPUSHRegisterDelegate>
+//在前台时是否展示通知
+@property(assign, nonatomic) BOOL unShow;
 @end
 #endif
 
@@ -120,6 +123,8 @@ static NSMutableArray<FlutterResult>* getRidResults;
         result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
     } else if([@"setup" isEqualToString:call.method]) {
         [self setup:call result: result];
+    } else if([@"setUnShowAtTheForeground" isEqualToString:call.method]) {
+        [self setUnShowAtTheForeground:call result: result];
     } else if([@"applyPushAuthority" isEqualToString:call.method]) {
         [self applyPushAuthority:call result:result];
     } else if([@"setTags" isEqualToString:call.method]) {
@@ -179,6 +184,14 @@ static NSMutableArray<FlutterResult>* getRidResults;
                            appKey:arguments[@"appKey"]
                           channel:arguments[@"channel"]
                  apsForProduction:[arguments[@"production"] boolValue]];
+}
+
+//设置APP在前台时是否展示通知
+- (void)setUnShowAtTheForeground:(FlutterMethodCall*)call result:(FlutterResult)result {
+    JPLog(@"setUnShowDidEnterBackground:");
+    NSDictionary *arguments = call.arguments;
+    NSNumber *unShow = arguments[@"UnShow"];
+    if(unShow && [unShow isKindOfClass:[NSNumber class]]) self.unShow = [unShow boolValue];
 }
 
 - (void)applyPushAuthority:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -559,9 +572,28 @@ static NSMutableArray<FlutterResult>* getRidResults;
 
 - (BOOL)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
     JPLog(@"application:didReceiveRemoteNotification:fetchCompletionHandler");
-    
     [JPUSHService handleRemoteNotification:userInfo];
-    [_channel invokeMethod:@"onReceiveNotification" arguments:userInfo];
+    if (@available(* ,iOS 10)) {
+        [_channel invokeMethod:@"onReceiveNotification" arguments:userInfo];
+       
+        /**
+         * 下面这段代码是解决 app处于杀死状态,点击通知启动app,但是不回调onOpenNotification的问题。
+         * 上诉情况不会走didReceiveNotificationResponse：回调。但是会走didReceiveRemoteNotification:fetchCompletionHandler:回调。iOS原生项目中正常情况下，点击通知冷启动app是会回调didReceiveNotificationResponse，不回调didReceiveRemoteNotification:fetchCompletionHandler:的。
+         * 因为不走didReceiveNotificationResponse：回调 所以没有onOpenNotification回调。这跟生命周期有关，didReceiveNotificationResponse:的代理需要通知的远程代理设置要在didFinishLaunch结束之前。但是flutter初始化jpush是在didFinishLaunch之后。
+         * 在这个方法里做一个判断吧，如果收到的消息和启动时的消息是同一个消息，则判断该消息为app杀死状态下通过点击通知唤醒的。
+         */
+        
+        if (_launchNotification && userInfo && [_launchNotification isKindOfClass:[NSDictionary class]] && [userInfo isKindOfClass:[NSDictionary class]]) {
+            // 拿到启动时的推送数据里的msgid
+            NSNumber *launchMsgid = [_launchNotification valueForKey:@"_j_msgid"];
+            // 拿到收到的消息的msgid
+            NSNumber *msgid = [userInfo valueForKey:@"_j_msgid"];
+            // 如果消息id一致
+            if ([launchMsgid isKindOfClass:[NSNumber class]] && [msgid isKindOfClass:[NSNumber class]] && [[launchMsgid stringValue] isEqualToString:[msgid stringValue]]) {
+                [_channel invokeMethod:@"onOpenNotification" arguments:_launchNotification];
+            }
+        }
+    }
     completionHandler(UIBackgroundFetchResultNewData);
     return YES;
 }
@@ -590,17 +622,19 @@ static NSMutableArray<FlutterResult>* getRidResults;
     });
 }
 
+//前台收到本地通知
 - (void)jpushNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(NSInteger))completionHandler  API_AVAILABLE(ios(10.0)){
     JPLog(@"jpushNotificationCenter:willPresentNotification::");
     NSDictionary * userInfo = notification.request.content.userInfo;
     if([notification.request.trigger isKindOfClass:[UNPushNotificationTrigger class]]) {
         [JPUSHService handleRemoteNotification:userInfo];
-        [_channel invokeMethod:@"onReceiveNotification" arguments: [self jpushFormatAPNSDic:userInfo]];
+        if (@available(iOS 10 , *)) {
+            [_channel invokeMethod:@"onReceiveNotification" arguments: [self jpushFormatAPNSDic:userInfo]];
+        }
     }else{
         JPLog(@"iOS10 前台收到本地通知:userInfo：%@",userInfo);
     }
-    
-    completionHandler(notificationTypes);
+    if (!self.unShow) completionHandler(notificationTypes);
 }
 
 - (void)jpushNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)())completionHandler  API_AVAILABLE(ios(10.0)){
