@@ -20,8 +20,9 @@
 }
 @end
 
+NSString *const LOCAL_NOTIFICATION_KEY = @"__JPushLocalNotification";
 
-#if defined(__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
+#ifdef __FF_NOTIFICATIONS_SUPPORTED_PLATFORM
 @interface JPushPlugin ()<JPUSHRegisterDelegate>
 //在前台时是否展示通知
 @property(assign, nonatomic) BOOL unShow;
@@ -35,6 +36,9 @@ static NSMutableArray<FlutterResult>* getRidResults;
     NSDictionary *_completeLaunchNotification;
     BOOL _isJPushDidLogin;
     JPAuthorizationOptions notificationTypes;
+#ifdef __FF_NOTIFICATIONS_SUPPORTED_PLATFORM
+    __weak id<UNUserNotificationCenterDelegate> _centerDelegate;
+#endif
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
@@ -209,7 +213,16 @@ static NSMutableArray<FlutterResult>* getRidResults;
     }
     JPUSHRegisterEntity * entity = [[JPUSHRegisterEntity alloc] init];
     entity.types = notificationTypes;
-    [JPUSHService registerForRemoteNotificationConfig:entity delegate:self];
+    if (@available(iOS 10.0, *)) {
+        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+        id<UNUserNotificationCenterDelegate> oldDelegate = center.delegate;
+        [JPUSHService registerForRemoteNotificationConfig:entity delegate:self];
+        // 保存JPush设置的delegate, 然后恢复老的delegate, 转而利用Flutter自带的本地通知分发机制, 分发通知
+        _centerDelegate = center.delegate;
+        center.delegate = oldDelegate;
+    } else {
+        [JPUSHService registerForRemoteNotificationConfig:entity delegate:self];
+    }
 }
 
 - (void)setTags:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -413,9 +426,9 @@ static NSMutableArray<FlutterResult>* getRidResults;
         content.action = params[@"action"];
     }
     
-    if ([params[@"extra"] isKindOfClass:[NSDictionary class]]) {
-        content.userInfo = params[@"extra"];
-    }
+    NSMutableDictionary *extra = [(params[@"extra"] ?: @{}) mutableCopy];
+    [extra setObject:LOCAL_NOTIFICATION_KEY forKey:LOCAL_NOTIFICATION_KEY];
+    content.userInfo = extra;
     
     if (params[@"sound"] && ![params[@"sound"] isEqualToString:@"<null>"]) {
         content.sound = params[@"sound"];
@@ -631,8 +644,10 @@ static NSMutableArray<FlutterResult>* getRidResults;
         if (@available(iOS 10 , *)) {
             [_channel invokeMethod:@"onReceiveNotification" arguments: [self jpushFormatAPNSDic:userInfo]];
         }
-    }else{
+    } else if ([[userInfo objectForKey:LOCAL_NOTIFICATION_KEY] isEqualToString:LOCAL_NOTIFICATION_KEY]) {
         JPLog(@"iOS10 前台收到本地通知:userInfo：%@",userInfo);
+    } else {
+        return;
     }
     if (!self.unShow) completionHandler(notificationTypes);
 }
@@ -643,7 +658,7 @@ static NSMutableArray<FlutterResult>* getRidResults;
     if([response.notification.request.trigger isKindOfClass:[UNPushNotificationTrigger class]]) {
         [JPUSHService handleRemoteNotification:userInfo];
         [_channel invokeMethod:@"onOpenNotification" arguments: [self jpushFormatAPNSDic:userInfo]];
-    }else{
+    } else if ([[userInfo objectForKey:LOCAL_NOTIFICATION_KEY] isEqualToString:LOCAL_NOTIFICATION_KEY]) {
         // iOS 10 以上点击本地通知
         JPLog(@"iOS10 点击本地通知");
         NSMutableDictionary *dic = [NSMutableDictionary dictionary];
@@ -670,6 +685,8 @@ static NSMutableArray<FlutterResult>* getRidResults;
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.channel invokeMethod:@"onOpenNotification" arguments:dic];
         });
+    } else {
+        return;
     }
     completionHandler();
 }
@@ -704,5 +721,23 @@ static NSMutableArray<FlutterResult>* getRidResults;
     formatDic[@"extras"] = extras;
     return formatDic;
 }
+
+#ifdef __FF_NOTIFICATIONS_SUPPORTED_PLATFORM
+#pragma mark - UNUserNotificationCenterDelegate
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
+    [_centerDelegate userNotificationCenter:center willPresentNotification:notification withCompletionHandler:completionHandler];
+}
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler {
+    [_centerDelegate userNotificationCenter:center didReceiveNotificationResponse:response withCompletionHandler:completionHandler];
+}
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center openSettingsForNotification:(UNNotification *)notification {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunguarded-availability-new"
+    [_centerDelegate userNotificationCenter:center openSettingsForNotification:notification];
+#pragma clang diagnostic pop
+}
+#endif
 
 @end
