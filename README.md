@@ -41,11 +41,18 @@ android: {
         JPUSH_APPKEY : "appkey", // NOTE: JPush 上注册的包名对应的 Appkey.
         JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可.
     ]
-  }    
+  }
+```
 
 ##### iOS:
 
 - 在 xcode8 之后需要点开推送选项： TARGETS -> Capabilities -> Push Notification 设为 on 状态
+- 在[AppDelegate](example/ios/Runner/AppDelegate.m)中添加如下内容, 启用Flutter的本地通知管理机制:
+```objectivec
+  if (@available(iOS 10.0, *)) {
+    [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+  }
+```
 
 ### 使用
 
