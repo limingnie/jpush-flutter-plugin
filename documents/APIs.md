@@ -190,6 +190,7 @@ JPush jpush = new JPush();
 jpush.clearAllNotifications();
 ```
 
+**iOS Only**
 #### applyPushAuthority
 
 申请推送权限，注意这个方法只会向用户弹出一次推送权限请求（如果用户不同意，之后只能用户到设置页面里面勾选相应权限），需要开发者选择合适的时机调用。
@@ -206,7 +207,7 @@ jpush.applyPushAuthority(new NotificationSettingsIOS(
 
 #### setBadge
 
-**iOS Only **
+
 
 设置应用 badge 值，该方法还会同步 JPush 服务器的的 badge 值，JPush 服务器的 badge 值用于推送 badge 自动 +1 时会用到。
 
