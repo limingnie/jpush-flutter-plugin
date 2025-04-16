@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.3'
+        classpath("com.android.tools.build:gradle:8.1.0")
     }
 }
 
@@ -19,13 +19,20 @@ rootProject.allprojects {
     }
 }
 
-apply plugin: 'com.android.library'
+apply plugin: "com.android.library"
 
 android {
-    compileSdkVersion 30
+    namespace = "com.jiguang.jpush"
+
+    compileSdk = 35
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
 
     defaultConfig {
-        minSdkVersion 17
+        minSdk = 21
     }
     lintOptions {
         disable 'InvalidPackage'
