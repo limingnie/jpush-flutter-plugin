@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
-    implementation 'cn.jiguang.sdk:jpush-google:4.6.6'
-    implementation 'cn.jiguang.sdk:jcore-google:3.2.4'
+    // TODO: 同步官方最新代码, 为什么fork了一份? 考虑直接使用官方依赖
+    implementation 'cn.jiguang.sdk:jpush-google:6.3.1'
+    implementation 'cn.jiguang.sdk:jcore-google:5.6.0'
 }
