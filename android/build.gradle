@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.3'
+        classpath("com.android.tools.build:gradle:8.1.0")
     }
 }
 
@@ -19,13 +19,20 @@ rootProject.allprojects {
     }
 }
 
-apply plugin: 'com.android.library'
+apply plugin: "com.android.library"
 
 android {
-    compileSdkVersion 30
+    namespace = "com.jiguang.jpush"
+
+    compileSdk = 35
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
 
     defaultConfig {
-        minSdkVersion 17
+        minSdk = 21
     }
     lintOptions {
         disable 'InvalidPackage'
@@ -33,6 +40,7 @@ android {
 }
 
 dependencies {
-    implementation 'cn.jiguang.sdk:jpush-google:4.6.6'
-    implementation 'cn.jiguang.sdk:jcore-google:3.2.4'
+    // TODO: 同步官方最新代码, 为什么fork了一份? 考虑直接使用官方依赖
+    implementation 'cn.jiguang.sdk:jpush-google:6.3.1'
+    implementation 'cn.jiguang.sdk:jcore-google:5.6.0'
 }
